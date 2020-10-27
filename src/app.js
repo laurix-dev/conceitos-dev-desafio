@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 
-// const { v4: uuid, validate: isUuid } = require('uuid');
+const { v4: uuid, validate: isUuid } = require('uuid');
 
 const app = express();
 
@@ -11,23 +11,91 @@ app.use(cors());
 const repositories = [];
 
 app.get("/repositories", (request, response) => {
-  // TODO
+  return response.json(repositories);
 });
 
 app.post("/repositories", (request, response) => {
-  // TODO
+  const {title,url,techs} = request.body
+  const repository = {
+    id:uuid(),
+    title, 
+    url,
+    techs,
+    likes: 0
+  }
+
+  if(!isUuid(repository.id)) {//verificando se o id gerado eh valido
+    return response.status(500).json({error: "id gerado invalido"})
+  }
+  repositories.push(repository)//salvando o novo rep no vetor
+
+  return response.json(repository)
 });
 
+// PUT /repositories/:id: A rota deve alterar apenas o title, a url e as 
+// techs do repositório que possua o id igual ao id presente 
+// nos parâmetros da rota;
+
 app.put("/repositories/:id", (request, response) => {
-  // TODO
+  const {id} = request.params
+  const {title,url,techs}=request.body//pegando as unicas infos que podem ser alteradas
+
+  //procurando primeiro o repositorio pelo id, ele vai retornar o indice dele no vetor
+  const repoIndex = repositories.findIndex(repository => repository.id === id)
+  
+  if(repoIndex<0){
+    return response.status(400).json({ message:"Repositorio nao encontrado"})
+  }
+
+  const repository = {
+    id,
+    title: title? title: repositories[repoIndex].title,//verificando se os campos foram setados 
+    url: url? url: repositories[repoIndex].url,//caso nao foram a gente so usa o valor antigo msm
+    techs: techs? techs: repositories[repoIndex].techs,
+    likes: repositories[repoIndex].likes//mantendo id e o likes do repositorio antigo pra poder sobrescrever
+  }
+
+  repositories[repoIndex]= repository
+  return response.json(repository)
+
 });
 
 app.delete("/repositories/:id", (request, response) => {
-  // TODO
-});
+  const {id} = request.params
 
+  repoIndex = repositories.findIndex(repository=>repository.id === id)//procurando o rep por id
+   
+  if(repoIndex < 0){
+    return response.status(400).json({message:"Repositorio nao encontrado"})
+  }
+
+  repositories.splice(repoIndex, 1)
+
+  return response.status(204).send()
+});
+// POST /repositories/:id/like: A rota deve aumentar o número de likes do 
+// repositório específico escolhido através do id presente nos parâmetros
+//  da rota, a cada chamada dessa rota, o número de likes deve ser aumentado em 1;
 app.post("/repositories/:id/like", (request, response) => {
-  // TODO
+    const {id} = request.params;
+
+    repoIndex = repositories.findIndex(repository => repository.id === id)
+
+    if(repoIndex < 0){
+      return response.status(400).json({message:"Repository not found"})
+    }
+
+    const repository = {
+      id,
+      title: repositories[repoIndex].title,
+      url: repositories[repoIndex].url,
+      techs: repositories[repoIndex].techs,
+      likes: repositories[repoIndex].likes + 1,
+    }
+    
+    repositories[repoIndex] = repository
+
+    return response.json(repository)
 });
 
 module.exports = app;
