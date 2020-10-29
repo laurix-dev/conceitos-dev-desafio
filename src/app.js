@@ -17,7 +17,7 @@ app.get("/repositories", (request, response) => {
 app.post("/repositories", (request, response) => {
   const {title,url,techs} = request.body
   const repository = {
-    id:uuid(),
+    id: uuid(),//no teste no reactjs por algum motivo ele ta tentando criar um rep com o id 123 e nao cabe a ele tentar estipular o id mas tenho que fazer isso pra ele passar no teste
     title, 
     url,
     techs,
